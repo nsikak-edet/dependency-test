@@ -1,42 +1,41 @@
 # Backend Coding Challenge: Module Dependency Challenge
+## Solutions Description
 
-### ProjectStructure
-This Spring-Boot-Project consists of three Submodules (`inquiry`, `notification` and `application`).
-The `notification`-Module depends on the `inquiry`-Module. The `application` depends on both and serves as Spring boot main module.
+## Mockito Problem
+The test did fail on first run attempt, generating an exception `'Mockito cannot mock 
+this class exception'`.
 
-The `InquiryTest` calls `InquiryService#create(Inquiry)` and checks wether the methods `EmailHandler#sendEmail(Inquiry)`
-and `PushNotificationHandler#sendNotification` have been called with the same parameters.
+## Solution
+To solve the Mockito issue, I had to add a new 
+gradle dependency `org.mockito:mockito-core:2.23.4` (mockito core) to 
+the application module.  
 
-### Acceptance Criteria: 
-- After an Inquiry has been created, `EmailHandler#sendEmail(Inquiry)` and `PushNotificationHandler#sendNotification` have to be executed
-- the `InquiryTest` has to be successful
- 
-### general conditions:
-- the classes `Inquiry`, `InquiryTest` and `Application` shall not be modified
-- the existing classes shall not be moved between the modules
-- the dependencies between the modules shall not be customized
-- Any other gradle dependencies can be added
-- optional: can be implemented in Kotlin
+### Solution Redesign 
+I observed that the test procedure test for 
+ `EmailHandler#sendEmail(Inquiry)` and `PushNotificationHandler#sendNotification` method calls 
+  when an inquiry is created, by calling `Invoice#create(Inquiry)` method of `InquiryService` class. 
+  
+### Problem with Existing Design
+Based on existing design (old), It was problematic to 
+inject `EmailHandler` and `PushNotificationHandler` into 
+`InquiryService` class because they do not belong 
+to the same module. Also, trying to include the module where 
+these classes (EmailHandler & PushNotificationHandler) 
+belong will lead to cyclical dependency problem. To solve this 
+problem, I did the following:
+- created a new module named `commons'
+- converted EmailHandler and PushNotificationHandler from concrete 
+classes to interface (this is to promote loose
+ coupling of system function)
+- implemented the created interfaces in `commons` module (new created module)
+- added `notifications module` to the new module `commons`
+- added `commons` (new created module) as dependency in `inquiry module`
+
+After the above redesign, it was possible to access `EmailHandler` and `PushNotificationHandler`
+in multiple modules.
 
 
-
---- German -----------------------------------------------
-
-### Projektaufbau:
-Dieses Spring-Boot-Projekt besteht aus drei Submodulen (`inquiry`, `notification` und `application`).
-Das `notification`-Modul ist vom `inquiry`-Modul abhängig. Das `application` ist von beiden abhängig und dient als Spring boot Hauptmodul.
-
-Der `InquiryTest` ruft `InquiryService#create(Inquiry)` auf und prüft, ob die Methoden `EmailHandler#sendEmail(Inquiry)`
-und `PushNotificationHandler#sendNotification` mit dem gleichen Parameter aufgerufen wurden.
-
-### Akzeptanzkritieren: 
- - Nach dem eine Inquiry erstellt wird, muss `EmailHandler#sendEmail(Inquiry)` und `PushNotificationHandler#sendNotification` ausgeführt werden
- - Der `InquiryTest` muss erfolgreich sein
- 
-### Rahmenbedingungen:
- - Die Klassen `Inquiry`, `InquiryTest` und `Application` dürfen nicht modifiziert werden
- - Die bestehenden Klassen dürfen nicht zwischen den Modulen verschoben werden
- - Die Abhängigkeiten zwischen den Modulen dürfen nicht angepasst werden
- - Ansonsten können beliebige gradle dependencies hinzugefügt werden
- - optional: die Aufgabe kann in Kotlin umgesetzt werden
+## Problem with old design
+Old design was highly coupled making it difficult to reuse components. New design introduces 
+interfaces to promote loose coupling of component and re-usability
  
