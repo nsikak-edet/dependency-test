@@ -34,6 +34,10 @@ classes to interface (this is to promote loose
 After the above redesign, it was possible to access `EmailHandler` and `PushNotificationHandler`
 in multiple modules.
 
+- Redesign of inquiry service: I converted Inquiry Service to an 
+interface so as to make the application loosely coupled with other 
+components that may want to interact with the service 
+
 
 ## Problem with old design
 Old design was highly coupled making it difficult to reuse components. New design introduces 
